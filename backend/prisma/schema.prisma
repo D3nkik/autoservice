@@ -1,0 +1,115 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "mysql"
+  url      = env("DATABASE_URL")
+}
+
+enum Role {
+  client
+  admin
+}
+
+enum BookingStatus {
+  new
+  confirmed
+  in_progress
+  completed
+  cancelled
+}
+
+model User {
+  id            Int      @id @default(autoincrement())
+  email         String   @unique @db.VarChar(255)
+  phone         String   @db.VarChar(20)
+  name          String?  @db.VarChar(255)
+  password_hash String   @db.VarChar(255)
+  role          Role     @default(client)
+  car_brand     String?  @db.VarChar(100)
+  car_model     String?  @db.VarChar(100)
+  car_year      Int?
+  car_plate     String?  @db.VarChar(20)
+  created_at    DateTime @default(now())
+  updated_at    DateTime @updatedAt
+
+  bookings        Booking[]       @relation("UserBookings")
+  service_history ServiceHistory[] @relation("UserHistory")
+  history_created ServiceHistory[] @relation("CreatedByAdmin")
+
+  @@map("asvc_users")
+}
+
+model Service {
+  id             Int      @id @default(autoincrement())
+  name           String   @db.VarChar(255)
+  description    String?  @db.Text
+  price_from     Decimal  @db.Decimal(10, 2)
+  price_to       Decimal? @db.Decimal(10, 2)
+  duration_hours Int      @default(1)
+  is_active      Boolean  @default(true)
+  sort_order     Int      @default(0)
+
+  bookings Booking[]
+
+  @@map("asvc_services")
+}
+
+model Lift {
+  id        Int     @id @default(autoincrement())
+  name      String  @db.VarChar(50)
+  is_active Boolean @default(true)
+
+  bookings Booking[]
+
+  @@map("asvc_lifts")
+}
+
+model Booking {
+  id             Int           @id @default(autoincrement())
+  user_id        Int?
+  lift_id        Int?
+  service_id     Int?
+  custom_service String?       @db.Text
+  client_name    String        @db.VarChar(255)
+  client_phone   String        @db.VarChar(20)
+  client_email   String?       @db.VarChar(255)
+  date           DateTime      @db.Date
+  time_slot      DateTime      @db.Time(0)
+  duration_hours Int           @default(1)
+  status         BookingStatus @default(new)
+  admin_notes    String?       @db.Text
+  total_price    Decimal?      @db.Decimal(10, 2)
+  cancel_reason  String?       @db.Text
+  car_brand      String?       @db.VarChar(100)
+  car_model      String?       @db.VarChar(100)
+  created_at     DateTime      @default(now())
+  updated_at     DateTime      @updatedAt
+
+  user    User?    @relation("UserBookings", fields: [user_id], references: [id])
+  lift    Lift?    @relation(fields: [lift_id], references: [id])
+  service Service? @relation(fields: [service_id], references: [id])
+
+  service_history ServiceHistory?
+
+  @@map("asvc_bookings")
+}
+
+model ServiceHistory {
+  id           Int      @id @default(autoincrement())
+  booking_id   Int?     @unique
+  user_id      Int
+  service_name String   @db.VarChar(255)
+  description  String?  @db.Text
+  price        Decimal? @db.Decimal(10, 2)
+  mileage      Int?
+  completed_at DateTime @default(now())
+  created_by   Int?
+
+  booking         Booking? @relation(fields: [booking_id], references: [id])
+  user            User     @relation("UserHistory", fields: [user_id], references: [id])
+  created_by_user User?    @relation("CreatedByAdmin", fields: [created_by], references: [id])
+
+  @@map("asvc_service_history")
+}
