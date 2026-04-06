@@ -16,11 +16,10 @@ router.get('/', async (req: Request, res: Response) => {
   }
 
   const targetDate = new Date(date);
-  const tomorrow = new Date();
-  tomorrow.setHours(0, 0, 0, 0);
-  tomorrow.setDate(tomorrow.getDate() + 1);
-  if (targetDate < tomorrow) {
-    return res.status(400).json({ message: 'Запись возможна только на завтра и позже' });
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+  if (targetDate < today) {
+    return res.status(400).json({ message: 'Нельзя записаться на прошедшую дату' });
   }
 
   // Get active lifts count
@@ -28,8 +27,8 @@ router.get('/', async (req: Request, res: Response) => {
   if (liftsCount === 0) return res.json({ available_slots: [] });
 
   // Get bookings for this date
-  const dayStart = new Date(`${date}T00:00:00.000Z`);
-  const dayEnd = new Date(`${date}T23:59:59.999Z`);
+  const dayStart = new Date(`${date}T00:00:00.000`);
+  const dayEnd = new Date(`${date}T23:59:59.999`);
 
   const bookings = await prisma.booking.findMany({
     where: {
