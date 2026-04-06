@@ -1,4 +1,4 @@
-import nodemailer from 'nodemailer';
+import https from 'https';
 
 interface EmailOptions {
   to: string;
@@ -6,25 +6,49 @@ interface EmailOptions {
   html: string;
 }
 
-const transporter = nodemailer.createTransport({
-  host: process.env.SMTP_HOST || 'smtp.gmail.com',
-  port: parseInt(process.env.SMTP_PORT || '587'),
-  secure: false,
-  auth: {
-    user: process.env.SMTP_USER,
-    pass: process.env.SMTP_PASS,
-  },
-});
-
 export async function sendEmail({ to, subject, html }: EmailOptions): Promise<void> {
-  if (!process.env.SMTP_USER) {
-    console.log(`[Email skipped — SMTP not configured] To: ${to}, Subject: ${subject}`);
+  const apiKey = process.env.BREVO_API_KEY;
+  const fromEmail = process.env.SMTP_FROM_EMAIL || 'noreply@autoservice.ru';
+  const fromName = process.env.SMTP_FROM_NAME || 'АвтоСервис';
+
+  if (!apiKey) {
+    console.log(`[Email skipped — BREVO_API_KEY not configured] To: ${to}, Subject: ${subject}`);
     return;
   }
-  await transporter.sendMail({
-    from: process.env.SMTP_FROM || 'АвтоСервис <noreply@autoservice.ru>',
-    to,
+
+  const body = JSON.stringify({
+    sender: { name: fromName, email: fromEmail },
+    to: [{ email: to }],
     subject,
-    html,
+    htmlContent: html,
+  });
+
+  await new Promise<void>((resolve, reject) => {
+    const req = https.request(
+      {
+        hostname: 'api.brevo.com',
+        path: '/v3/smtp/email',
+        method: 'POST',
+        headers: {
+          'api-key': apiKey,
+          'Content-Type': 'application/json',
+          'Content-Length': Buffer.byteLength(body),
+        },
+      },
+      (res) => {
+        let data = '';
+        res.on('data', (chunk) => { data += chunk; });
+        res.on('end', () => {
+          if (res.statusCode && res.statusCode >= 200 && res.statusCode < 300) {
+            resolve();
+          } else {
+            reject(new Error(`Brevo API error ${res.statusCode}: ${data}`));
+          }
+        });
+      }
+    );
+    req.on('error', reject);
+    req.write(body);
+    req.end();
   });
 }

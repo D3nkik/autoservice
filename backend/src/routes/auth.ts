@@ -105,11 +105,16 @@ router.post('/forgot-password', async (req: Request, res: Response) => {
   const resetToken = jwt.sign({ id: user.id, token }, process.env.JWT_SECRET!, { expiresIn: '1h' } as jwt.SignOptions);
   const resetUrl = `${process.env.FRONTEND_URL}/auth/reset-password?token=${resetToken}`;
 
-  await sendEmail({
-    to: email,
-    subject: 'Сброс пароля — АвтоСервис',
-    html: `<p>Для сброса пароля перейдите по ссылке: <a href="${resetUrl}">${resetUrl}</a></p><p>Ссылка действительна 1 час.</p>`,
-  });
+  try {
+    await sendEmail({
+      to: email,
+      subject: 'Сброс пароля — АвтоСервис',
+      html: `<p>Для сброса пароля перейдите по ссылке: <a href="${resetUrl}">${resetUrl}</a></p><p>Ссылка действительна 1 час.</p>`,
+    });
+  } catch (err) {
+    console.error('[forgot-password] Failed to send email:', err);
+    return res.status(500).json({ message: 'Ошибка отправки письма. Попробуйте позже.' });
+  }
 
   return res.json({ message: 'Письмо отправлено' });
 });

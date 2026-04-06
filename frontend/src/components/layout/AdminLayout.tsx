@@ -68,7 +68,7 @@ export default function AdminLayout({ children, title }: Props) {
       {/* Sidebar */}
       <aside className="hidden md:flex flex-col w-60 bg-dark-100 border-r border-dark-200 shrink-0">
         <div className="p-5 border-b border-dark-200">
-          <Link href="/" className="flex items-center gap-2">
+          <Link href="/" target="_blank" rel="noopener noreferrer" className="flex items-center gap-2">
             <div className="w-8 h-8 rounded-lg bg-primary-500 flex items-center justify-center">
               <svg className="w-4 h-4 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
                 <path strokeLinecap="round" strokeLinejoin="round" d="M11.42 15.17L17.25 21A2.652 2.652 0 0021 17.25l-5.877-5.877M11.42 15.17l2.496-3.03c.317-.384.74-.626 1.208-.766M11.42 15.17l-4.655 5.653a2.548 2.548 0 11-3.586-3.586l6.837-5.63" />
