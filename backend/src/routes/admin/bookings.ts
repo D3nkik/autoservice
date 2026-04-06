@@ -120,6 +120,17 @@ router.put('/:id', async (req: AuthRequest, res: Response) => {
 router.post('/', async (req: AuthRequest, res: Response) => {
   const { client_name, client_phone, client_email, service_id, custom_service, date, time_slot, duration_hours, lift_id, user_id, car_brand, car_model } = req.body;
 
+  // Auto-link to existing user by phone or email
+  let resolvedUserId = user_id || null;
+  if (!resolvedUserId && client_phone) {
+    const found = await prisma.user.findFirst({ where: { phone: client_phone } });
+    resolvedUserId = found?.id || null;
+  }
+  if (!resolvedUserId && client_email) {
+    const found = await prisma.user.findFirst({ where: { email: client_email } });
+    resolvedUserId = found?.id || null;
+  }
+
   const booking = await prisma.booking.create({
     data: {
       client_name, client_phone,
@@ -127,10 +138,10 @@ router.post('/', async (req: AuthRequest, res: Response) => {
       service_id: service_id || null,
       custom_service: custom_service || null,
       date: new Date(date),
-      time_slot: new Date(`${date}T${time_slot}:00.000Z`),
+      time_slot: new Date(`1970-01-01T${time_slot}:00.000`),
       duration_hours: duration_hours || 1,
       lift_id: lift_id || null,
-      user_id: user_id || null,
+      user_id: resolvedUserId,
       car_brand: car_brand || null,
       car_model: car_model || null,
       status: 'confirmed',

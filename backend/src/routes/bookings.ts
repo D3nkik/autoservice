@@ -25,14 +25,13 @@ router.post('/', async (req: Request, res: Response) => {
 
   const data = parsed.data;
   const dateObj = new Date(data.date);
-  const timeObj = new Date(`${data.date}T${data.time_slot}:00.000Z`);
+  const timeObj = new Date(`1970-01-01T${data.time_slot}:00.000`);
 
   // Check not in the past
-  const tomorrow = new Date();
-  tomorrow.setDate(tomorrow.getDate() + 1);
-  tomorrow.setHours(0, 0, 0, 0);
-  if (dateObj < tomorrow) {
-    return res.status(400).json({ message: 'Запись возможна только на завтра и позже' });
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+  if (dateObj < today) {
+    return res.status(400).json({ message: 'Нельзя записаться на прошедшую дату' });
   }
 
   const booking = await prisma.booking.create({

@@ -56,8 +56,10 @@ export default function AdminSchedulePage() {
       .finally(() => setLoading(false));
   }, [date]);
 
+  const getTimeHM = (t: string) => t.includes('T') ? t.slice(11, 16) : t.slice(0, 5);
+
   const getBookingAtSlot = (lift: LiftSchedule, slot: string) =>
-    lift.bookings.find((b) => b.time_slot.slice(0, 5) === slot);
+    lift.bookings.find((b) => getTimeHM(b.time_slot) === slot);
 
   return (
     <>
@@ -119,7 +121,7 @@ export default function AdminSchedulePage() {
               </thead>
               <tbody>
                 {TIME_SLOTS.map((slot) => {
-                  const unassignedAtSlot = unassigned.filter((b) => b.time_slot.slice(0, 5) === slot);
+                  const unassignedAtSlot = unassigned.filter((b) => getTimeHM(b.time_slot) === slot);
                   return (
                     <tr key={slot} className="border-t border-dark-200">
                       <td className="px-3 py-2 text-dark-300 font-mono text-xs border-r border-dark-200">{slot}</td>

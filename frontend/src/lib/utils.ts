@@ -12,6 +12,9 @@ export function formatDate(dateStr: string): string {
 }
 
 export function formatTime(timeStr: string): string {
+  if (!timeStr) return '';
+  // Prisma @db.Time returns "1970-01-01T08:00:00.000Z" — extract HH:MM from position 11
+  if (timeStr.includes('T')) return timeStr.slice(11, 16);
   return timeStr.slice(0, 5); // "08:00:00" → "08:00"
 }
 
