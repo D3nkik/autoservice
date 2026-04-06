@@ -6,7 +6,7 @@ import { z } from 'zod';
 import toast from 'react-hot-toast';
 import { servicesApi, slotsApi, bookingsApi, ServicePayload } from '@/lib/api';
 import { TIME_SLOTS } from '@/lib/utils';
-import { format, addDays } from 'date-fns';
+import { format } from 'date-fns';
 
 const schema = z.object({
   client_name: z.string().min(2, 'Введите имя'),
@@ -71,7 +71,7 @@ export default function BookingForm() {
     }
   };
 
-  const minDate = format(addDays(new Date(), 1), 'yyyy-MM-dd');
+  const minDate = format(new Date(), 'yyyy-MM-dd');
 
   if (submitted) {
     return (
