@@ -7,6 +7,9 @@ import bcrypt from 'bcryptjs';
 const router = Router();
 router.use(authenticate);
 
+const toHHMM = (ts: Date): string =>
+  `${String(ts.getUTCHours()).padStart(2, '0')}:${String(ts.getUTCMinutes()).padStart(2, '0')}`;
+
 // GET /api/me/profile
 router.get('/profile', async (req: AuthRequest, res: Response) => {
   const user = await prisma.user.findUnique({
@@ -51,7 +54,7 @@ router.get('/bookings', async (req: AuthRequest, res: Response) => {
     include: { service: true, lift: true },
     orderBy: { date: 'asc' },
   });
-  return res.json(bookings);
+  return res.json(bookings.map((b) => ({ ...b, time_slot: toHHMM(b.time_slot) })));
 });
 
 // DELETE /api/me/bookings/:id — cancel

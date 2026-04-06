@@ -4,6 +4,10 @@ import { prisma } from '../../services/prisma';
 import { sendEmail } from '../../services/email';
 import { AuthRequest } from '../../middleware/auth';
 
+const toHHMM = (ts: Date): string =>
+  `${String(ts.getUTCHours()).padStart(2, '0')}:${String(ts.getUTCMinutes()).padStart(2, '0')}`;
+const normalizeBooking = <T extends { time_slot: Date }>(b: T) => ({ ...b, time_slot: toHHMM(b.time_slot) });
+
 const router = Router();
 
 // GET /api/admin/bookings
@@ -31,7 +35,7 @@ router.get('/', async (req: Request, res: Response) => {
     include: { service: true, lift: true, user: { select: { id: true, name: true } } },
     orderBy: [{ date: 'desc' }, { time_slot: 'asc' }],
   });
-  return res.json(bookings);
+  return res.json(bookings.map(normalizeBooking));
 });
 
 // GET /api/admin/bookings/:id
@@ -41,7 +45,7 @@ router.get('/:id', async (req: Request, res: Response) => {
     include: { service: true, lift: true, user: { select: { id: true, name: true, email: true } } },
   });
   if (!booking) return res.status(404).json({ message: 'Заявка не найдена' });
-  return res.json(booking);
+  return res.json(normalizeBooking(booking));
 });
 
 // PUT /api/admin/bookings/:id
