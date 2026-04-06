@@ -7,7 +7,7 @@ interface EmailOptions {
 }
 
 export async function sendEmail({ to, subject, html }: EmailOptions): Promise<void> {
-  const apiKey = process.env.RESEND_API_KEY;
+  const apiKey = (process.env.RESEND_API_KEY || '').trim();
 
   if (!apiKey) {
     console.log(`[Email skipped — RESEND_API_KEY not configured] To: ${to}, Subject: ${subject}`);
