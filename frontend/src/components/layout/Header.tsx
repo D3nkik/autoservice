@@ -37,7 +37,7 @@ export default function Header() {
             </svg>
           </div>
           <span className="text-xl font-bold">
-            Авто<span className="text-primary-500">Движ</span>
+            Авто<span className="text-primary-500">Сервис</span>
           </span>
         </Link>
 

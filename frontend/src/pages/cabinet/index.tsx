@@ -92,7 +92,7 @@ export default function CabinetPage() {
                   <path strokeLinecap="round" strokeLinejoin="round" d="M11.42 15.17L17.25 21A2.652 2.652 0 0021 17.25l-5.877-5.877M11.42 15.17l2.496-3.03c.317-.384.74-.626 1.208-.766M11.42 15.17l-4.655 5.653a2.548 2.548 0 11-3.586-3.586l6.837-5.63" />
                 </svg>
               </div>
-              <span className="font-bold">Авто<span className="text-primary-500">Движ</span></span>
+              <span className="font-bold">Авто<span className="text-primary-500">Сервис</span></span>
             </Link>
             <div className="flex items-center gap-3">
               <span className="text-sm text-dark-300 hidden sm:block">{user.email}</span>
