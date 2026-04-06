@@ -7,30 +7,28 @@ interface EmailOptions {
 }
 
 export async function sendEmail({ to, subject, html }: EmailOptions): Promise<void> {
-  const apiKey = process.env.BREVO_API_KEY;
-  const fromEmail = process.env.SMTP_FROM_EMAIL || 'noreply@autoservice.ru';
-  const fromName = process.env.SMTP_FROM_NAME || 'АвтоСервис';
+  const apiKey = process.env.RESEND_API_KEY;
 
   if (!apiKey) {
-    console.log(`[Email skipped — BREVO_API_KEY not configured] To: ${to}, Subject: ${subject}`);
+    console.log(`[Email skipped — RESEND_API_KEY not configured] To: ${to}, Subject: ${subject}`);
     return;
   }
 
   const body = JSON.stringify({
-    sender: { name: fromName, email: fromEmail },
-    to: [{ email: to }],
+    from: 'АвтоСервис <onboarding@resend.dev>',
+    to: [to],
     subject,
-    htmlContent: html,
+    html,
   });
 
   await new Promise<void>((resolve, reject) => {
     const req = https.request(
       {
-        hostname: 'api.brevo.com',
-        path: '/v3/smtp/email',
+        hostname: 'api.resend.com',
+        path: '/emails',
         method: 'POST',
         headers: {
-          'api-key': apiKey,
+          'Authorization': `Bearer ${apiKey}`,
           'Content-Type': 'application/json',
           'Content-Length': Buffer.byteLength(body),
         },
@@ -42,7 +40,7 @@ export async function sendEmail({ to, subject, html }: EmailOptions): Promise<vo
           if (res.statusCode && res.statusCode >= 200 && res.statusCode < 300) {
             resolve();
           } else {
-            reject(new Error(`Brevo API error ${res.statusCode}: ${data}`));
+            reject(new Error(`Resend API error ${res.statusCode}: ${data}`));
           }
         });
       }
