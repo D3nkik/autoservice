@@ -27,12 +27,14 @@ export async function runSeed() {
     });
 
     const services = [
-      { name: 'Техническое обслуживание', description: 'Замена масла, фильтров, проверка всех систем', price_from: 2000, price_to: 5000, duration_hours: 2, sort_order: 1 },
-      { name: 'Диагностика', description: 'Компьютерная диагностика всех систем автомобиля', price_from: 500, price_to: 1500, duration_hours: 1, sort_order: 2 },
-      { name: 'Ремонт ходовой части', description: 'Замена амортизаторов, рычагов, шаровых опор', price_from: 1500, price_to: 8000, duration_hours: 3, sort_order: 3 },
-      { name: 'Шиномонтаж', description: 'Замена, балансировка шин', price_from: 800, price_to: 2000, duration_hours: 1, sort_order: 4 },
-      { name: 'Кузовной ремонт', description: 'Устранение вмятин, покраска', price_from: 3000, duration_hours: 4, sort_order: 5 },
-      { name: 'Замена тормозных колодок', description: 'Передние и задние тормозные колодки', price_from: 1200, price_to: 3000, duration_hours: 1, sort_order: 6 },
+      { name: 'Компьютерная диагностика', description: 'Полная диагностика всех систем автомобиля, проверка ошибок ЭБУ', price_from: 500, price_to: 1500, duration_hours: 1, sort_order: 1 },
+      { name: 'Техническое обслуживание', description: 'Замена масла, фильтров, проверка всех систем автомобиля', price_from: 2000, price_to: 5000, duration_hours: 2, sort_order: 2 },
+      { name: 'Ремонт ходовой части', description: 'Амортизаторы, рычаги, шаровые опоры, сайлентблоки, рулевые тяги', price_from: 500, price_to: 8000, duration_hours: 3, sort_order: 3 },
+      { name: 'Тормозная система', description: 'Замена колодок, дисков, суппортов. Прокачка и замена тормозной жидкости', price_from: 600, price_to: 3000, duration_hours: 1, sort_order: 4 },
+      { name: 'Ремонт двигателя', description: 'Диагностика и ремонт двигателя любой сложности, замена ГРМ', price_from: 3000, price_to: 50000, duration_hours: 4, sort_order: 5 },
+      { name: 'Шиномонтаж и балансировка', description: 'Замена и балансировка шин. Сезонное хранение шин', price_from: 800, price_to: 2000, duration_hours: 1, sort_order: 6 },
+      { name: 'Ремонт АКПП', description: 'Ремонт и обслуживание автоматических коробок передач, DSG, вариаторов', price_from: 5000, price_to: 60000, duration_hours: 8, sort_order: 7 },
+      { name: 'Кузовной ремонт', description: 'Устранение вмятин, рихтовка, покраска. Работаем с любыми повреждениями', price_from: 3000, price_to: 30000, duration_hours: 4, sort_order: 8 },
     ];
 
     for (const s of services) {

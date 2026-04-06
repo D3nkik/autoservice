@@ -66,6 +66,12 @@ router.post('/login', async (req: Request, res: Response) => {
   const valid = await bcrypt.compare(password, user.password_hash);
   if (!valid) return res.status(401).json({ message: 'Неверный email или пароль' });
 
+  // Link guest bookings by email or phone on login
+  await prisma.booking.updateMany({
+    where: { user_id: null, OR: [{ client_email: email }, { client_phone: user.phone }] },
+    data: { user_id: user.id },
+  });
+
   const tokens = generateTokens(user.id, user.role);
   const { password_hash: _, ...safeUser } = user;
   return res.json({ ...tokens, user: safeUser });

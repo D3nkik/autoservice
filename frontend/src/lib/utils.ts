@@ -21,11 +21,11 @@ export function formatPrice(from: number, to?: number | null): string {
 }
 
 export const BOOKING_STATUSES = {
-  new: { label: 'Новая', color: 'bg-yellow-100 text-yellow-800' },
-  confirmed: { label: 'Подтверждена', color: 'bg-blue-100 text-blue-800' },
-  in_progress: { label: 'В работе', color: 'bg-orange-100 text-orange-800' },
-  completed: { label: 'Выполнена', color: 'bg-green-100 text-green-800' },
-  cancelled: { label: 'Отменена', color: 'bg-red-100 text-red-800' },
+  new: { label: 'Новая', color: 'bg-yellow-500/20 text-yellow-300' },
+  confirmed: { label: 'Подтверждена', color: 'bg-blue-500/20 text-blue-300' },
+  in_progress: { label: 'В работе', color: 'bg-orange-500/20 text-orange-300' },
+  completed: { label: 'Выполнена', color: 'bg-green-500/20 text-green-300' },
+  cancelled: { label: 'Отменена', color: 'bg-dark-200 text-dark-300' },
 } as const;
 
 export const TIME_SLOTS = [

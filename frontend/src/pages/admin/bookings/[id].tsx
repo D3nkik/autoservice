@@ -7,6 +7,7 @@ import toast from 'react-hot-toast';
 import { adminApi, AdminBookingUpdate } from '@/lib/api';
 import { isAuthenticated, isAdmin } from '@/lib/auth';
 import { formatDate, formatTime, BOOKING_STATUSES } from '@/lib/utils';
+import AdminLayout from '@/components/layout/AdminLayout';
 
 interface BookingDetail {
   id: number;
@@ -22,10 +23,19 @@ interface BookingDetail {
   lift?: { id: number; name: string };
   admin_notes?: string;
   total_price?: number;
+  car_brand?: string;
+  car_model?: string;
   user?: { id: number; name: string; email: string };
 }
 
 interface Lift { id: number; name: string; is_active: boolean; }
+
+const STATUS_ACTIONS: { status: AdminBookingUpdate['status']; label: string; cls: string; from: string[] }[] = [
+  { status: 'confirmed', label: '✓ Подтвердить', cls: 'bg-blue-500 hover:bg-blue-600', from: ['new'] },
+  { status: 'in_progress', label: '🔧 В работу', cls: 'bg-orange-500 hover:bg-orange-600', from: ['confirmed'] },
+  { status: 'completed', label: '✅ Завершить', cls: 'bg-green-500 hover:bg-green-600', from: ['in_progress'] },
+  { status: 'cancelled', label: '✕ Отменить', cls: 'bg-red-500/20 hover:bg-red-500/40 text-red-400 border border-red-500/30', from: ['new', 'confirmed'] },
+];
 
 export default function AdminBookingDetailPage() {
   const router = useRouter();
@@ -34,35 +44,31 @@ export default function AdminBookingDetailPage() {
   const [lifts, setLifts] = useState<Lift[]>([]);
   const { register, handleSubmit, reset, formState: { isSubmitting } } = useForm<AdminBookingUpdate>();
 
+  const load = async (bookingId: number) => {
+    const [bRes, schedRes] = await Promise.all([
+      adminApi.getBooking(bookingId),
+      adminApi.getSchedule(new Date().toISOString().split('T')[0]),
+    ]);
+    setBooking(bRes.data);
+    setLifts(schedRes.data.lifts || []);
+    reset({
+      lift_id: bRes.data.lift?.id,
+      admin_notes: bRes.data.admin_notes || '',
+      total_price: bRes.data.total_price,
+    });
+  };
+
   useEffect(() => {
     if (!isAuthenticated() || !isAdmin()) { router.push('/auth/login'); return; }
     if (!id) return;
-    Promise.all([
-      adminApi.getBooking(Number(id)),
-      adminApi.getSchedule(new Date().toISOString().split('T')[0]),
-    ]).then(([bRes]) => {
-      setBooking(bRes.data);
-      reset({
-        lift_id: bRes.data.lift?.id,
-        admin_notes: bRes.data.admin_notes || '',
-        total_price: bRes.data.total_price,
-      });
-    });
-    // Fetch lifts list separately
-    import('@/lib/api').then(({ servicesApi: _ }) => {
-      adminApi.getSchedule(new Date().toISOString().split('T')[0]).then((r) => {
-        const uniqueLifts: Lift[] = r.data.lifts || [];
-        setLifts(uniqueLifts);
-      });
-    });
-  }, [id, router, reset]);
+    load(Number(id));
+  }, [id, router]);
 
   const onUpdate = async (data: AdminBookingUpdate) => {
     try {
       await adminApi.updateBooking(Number(id), data);
       toast.success('Заявка обновлена');
-      const res = await adminApi.getBooking(Number(id));
-      setBooking(res.data);
+      await load(Number(id));
     } catch {
       toast.error('Ошибка обновления');
     }
@@ -71,82 +77,136 @@ export default function AdminBookingDetailPage() {
   const setStatus = async (status: AdminBookingUpdate['status']) => {
     try {
       await adminApi.updateBooking(Number(id), { status });
-      toast.success(`Статус изменён: ${BOOKING_STATUSES[status!]?.label}`);
-      const res = await adminApi.getBooking(Number(id));
-      setBooking(res.data);
+      toast.success(`Статус: ${BOOKING_STATUSES[status!]?.label}`);
+      await load(Number(id));
     } catch {
       toast.error('Ошибка');
     }
   };
 
-  if (!booking) return <div className="min-h-screen flex items-center justify-center">Загрузка...</div>;
+  if (!booking) {
+    return (
+      <AdminLayout>
+        <div className="flex items-center justify-center h-48">
+          <div className="w-8 h-8 border-2 border-primary-500 border-t-transparent rounded-full animate-spin" />
+        </div>
+      </AdminLayout>
+    );
+  }
+
+  const status = BOOKING_STATUSES[booking.status];
 
   return (
     <>
-      <Head><title>Заявка #{booking.id} — Админ</title></Head>
-      <div className="min-h-screen bg-gray-100">
-        <header className="bg-dark-DEFAULT text-white px-6 py-4">
-          <Link href="/admin/bookings" className="text-sm hover:underline">← Все заявки</Link>
-        </header>
-        <main className="max-w-4xl mx-auto py-8 px-4">
-          <div className="flex items-start justify-between mb-6">
-            <div>
-              <h1 className="text-2xl font-bold">Заявка #{booking.id}</h1>
-              <span className={`text-sm px-2 py-1 rounded-full font-medium mt-1 inline-block ${BOOKING_STATUSES[booking.status]?.color}`}>
-                {BOOKING_STATUSES[booking.status]?.label}
-              </span>
-            </div>
-            {/* Status action buttons */}
-            <div className="flex gap-2 flex-wrap">
-              {booking.status === 'new' && (
-                <button onClick={() => setStatus('confirmed')} className="btn-primary text-sm">Подтвердить</button>
-              )}
-              {booking.status === 'confirmed' && (
-                <button onClick={() => setStatus('in_progress')} className="bg-orange-500 hover:bg-orange-600 text-white font-semibold py-2 px-4 rounded-lg text-sm">В работу</button>
-              )}
-              {booking.status === 'in_progress' && (
-                <button onClick={() => setStatus('completed')} className="bg-green-500 hover:bg-green-600 text-white font-semibold py-2 px-4 rounded-lg text-sm">Завершить</button>
-              )}
-              {(booking.status === 'new' || booking.status === 'confirmed') && (
-                <button onClick={() => setStatus('cancelled')} className="bg-red-500 hover:bg-red-600 text-white font-semibold py-2 px-4 rounded-lg text-sm">Отменить</button>
-              )}
-            </div>
+      <Head><title>Заявка #{booking.id} — АвтоДвиж Admin</title></Head>
+      <AdminLayout>
+        {/* Back + title */}
+        <div className="flex items-center gap-3 mb-6">
+          <Link href="/admin/bookings" className="text-dark-300 hover:text-white transition-colors">
+            <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+              <path strokeLinecap="round" strokeLinejoin="round" d="M10.5 19.5L3 12m0 0l7.5-7.5M3 12h18" />
+            </svg>
+          </Link>
+          <div className="flex items-center gap-3 flex-1">
+            <h1 className="text-xl font-bold">Заявка #{booking.id}</h1>
+            <span className={`badge text-xs ${status?.color}`}>{status?.label}</span>
           </div>
+          {/* Status buttons */}
+          <div className="flex gap-2 flex-wrap">
+            {STATUS_ACTIONS.filter((a) => a.from.includes(booking.status)).map((action) => (
+              <button
+                key={action.status}
+                onClick={() => setStatus(action.status)}
+                className={`text-sm font-semibold py-2 px-4 rounded-xl transition-colors text-white ${action.cls}`}
+              >
+                {action.label}
+              </button>
+            ))}
+          </div>
+        </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            {/* Client info */}
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-5">
+          {/* Left: details */}
+          <div className="lg:col-span-2 space-y-4">
+            {/* Client */}
             <div className="card">
-              <h2 className="font-semibold mb-3">Клиент</h2>
-              <p><span className="text-gray-500">Имя:</span> {booking.client_name}</p>
-              <p><span className="text-gray-500">Телефон:</span> {booking.client_phone}</p>
-              {booking.client_email && <p><span className="text-gray-500">Email:</span> {booking.client_email}</p>}
-              {booking.user && (
-                <p className="mt-2">
-                  <Link href={`/admin/clients/${booking.user.id}`} className="text-primary-500 hover:underline text-sm">
-                    Профиль клиента →
-                  </Link>
-                </p>
-              )}
+              <h2 className="font-semibold mb-4 flex items-center gap-2">
+                <svg className="w-4 h-4 text-primary-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M15.75 6a3.75 3.75 0 11-7.5 0 3.75 3.75 0 017.5 0zM4.501 20.118a7.5 7.5 0 0114.998 0A17.933 17.933 0 0112 21.75c-2.676 0-5.216-.584-7.499-1.632z" />
+                </svg>
+                Клиент
+              </h2>
+              <div className="grid grid-cols-2 gap-3 text-sm">
+                <div>
+                  <p className="text-dark-300 text-xs mb-0.5">Имя</p>
+                  <p className="text-white font-medium">{booking.client_name}</p>
+                </div>
+                <div>
+                  <p className="text-dark-300 text-xs mb-0.5">Телефон</p>
+                  <a href={`tel:${booking.client_phone}`} className="text-primary-400 font-medium hover:text-primary-300">{booking.client_phone}</a>
+                </div>
+                {booking.client_email && (
+                  <div className="col-span-2">
+                    <p className="text-dark-300 text-xs mb-0.5">Email</p>
+                    <a href={`mailto:${booking.client_email}`} className="text-primary-400 hover:text-primary-300">{booking.client_email}</a>
+                  </div>
+                )}
+                {booking.user && (
+                  <div className="col-span-2 pt-2 border-t border-dark-200">
+                    <Link href={`/admin/clients/${booking.user.id}`} className="text-sm text-primary-400 hover:text-primary-300">
+                      Профиль клиента в системе →
+                    </Link>
+                  </div>
+                )}
+              </div>
             </div>
 
             {/* Booking info */}
             <div className="card">
-              <h2 className="font-semibold mb-3">Запись</h2>
-              <p><span className="text-gray-500">Дата:</span> {formatDate(booking.date)}</p>
-              <p><span className="text-gray-500">Время:</span> {formatTime(booking.time_slot)}</p>
-              <p><span className="text-gray-500">Длительность:</span> {booking.duration_hours} ч.</p>
-              <p><span className="text-gray-500">Услуга:</span> {booking.service?.name || booking.custom_service || '—'}</p>
-              <p><span className="text-gray-500">Подъёмник:</span> {booking.lift?.name || 'Не назначен'}</p>
+              <h2 className="font-semibold mb-4 flex items-center gap-2">
+                <svg className="w-4 h-4 text-primary-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M6.75 3v2.25M17.25 3v2.25M3 18.75V7.5a2.25 2.25 0 012.25-2.25h13.5A2.25 2.25 0 0121 7.5v11.25m-18 0A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75m-18 0v-7.5" />
+                </svg>
+                Детали записи
+              </h2>
+              <div className="grid grid-cols-2 gap-3 text-sm">
+                <div>
+                  <p className="text-dark-300 text-xs mb-0.5">Дата</p>
+                  <p className="text-white font-medium">{formatDate(booking.date)}</p>
+                </div>
+                <div>
+                  <p className="text-dark-300 text-xs mb-0.5">Время</p>
+                  <p className="text-white font-medium">{formatTime(booking.time_slot)}</p>
+                </div>
+                <div>
+                  <p className="text-dark-300 text-xs mb-0.5">Длительность</p>
+                  <p className="text-white">{booking.duration_hours} ч.</p>
+                </div>
+                <div>
+                  <p className="text-dark-300 text-xs mb-0.5">Подъёмник</p>
+                  <p className="text-white">{booking.lift?.name || 'Не назначен'}</p>
+                </div>
+                <div className="col-span-2">
+                  <p className="text-dark-300 text-xs mb-0.5">Услуга</p>
+                  <p className="text-white">{booking.service?.name || booking.custom_service || '—'}</p>
+                </div>
+                {(booking.car_brand || booking.car_model) && (
+                  <div className="col-span-2">
+                    <p className="text-dark-300 text-xs mb-0.5">Автомобиль</p>
+                    <p className="text-white">{[booking.car_brand, booking.car_model].filter(Boolean).join(' ')}</p>
+                  </div>
+                )}
+              </div>
             </div>
           </div>
 
-          {/* Admin form */}
-          <div className="card mt-6">
-            <h2 className="font-semibold mb-4">Управление заявкой</h2>
+          {/* Right: admin controls */}
+          <div className="card">
+            <h2 className="font-semibold mb-4">Управление</h2>
             <form onSubmit={handleSubmit(onUpdate)} className="space-y-4">
               <div>
-                <label className="block text-sm font-medium mb-1">Подъёмник</label>
-                <select {...register('lift_id', { valueAsNumber: true })} className="input-field">
+                <label className="block text-sm font-medium text-dark-300 mb-1.5">Подъёмник</label>
+                <select {...register('lift_id', { valueAsNumber: true })} className="input-field text-sm">
                   <option value="">Не назначен</option>
                   {lifts.map((l) => (
                     <option key={l.id} value={l.id}>{l.name}</option>
@@ -154,20 +214,20 @@ export default function AdminBookingDetailPage() {
                 </select>
               </div>
               <div>
-                <label className="block text-sm font-medium mb-1">Заметки администратора</label>
-                <textarea {...register('admin_notes')} className="input-field" rows={3} />
+                <label className="block text-sm font-medium text-dark-300 mb-1.5">Итоговая стоимость (₽)</label>
+                <input {...register('total_price', { valueAsNumber: true })} type="number" className="input-field text-sm" placeholder="0" />
               </div>
               <div>
-                <label className="block text-sm font-medium mb-1">Итоговая стоимость (₽)</label>
-                <input {...register('total_price', { valueAsNumber: true })} type="number" className="input-field" />
+                <label className="block text-sm font-medium text-dark-300 mb-1.5">Заметки</label>
+                <textarea {...register('admin_notes')} className="input-field text-sm" rows={4} placeholder="Внутренние заметки..." />
               </div>
-              <button type="submit" disabled={isSubmitting} className="btn-primary">
+              <button type="submit" disabled={isSubmitting} className="btn-primary w-full text-sm py-2.5 disabled:opacity-50">
                 {isSubmitting ? 'Сохранение...' : 'Сохранить'}
               </button>
             </form>
           </div>
-        </main>
-      </div>
+        </div>
+      </AdminLayout>
     </>
   );
 }

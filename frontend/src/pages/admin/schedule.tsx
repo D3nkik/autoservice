@@ -2,11 +2,12 @@ import Head from 'next/head';
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/router';
 import Link from 'next/link';
-import { format, addDays, subDays, parseISO } from 'date-fns';
+import { format, addDays, subDays } from 'date-fns';
 import { ru } from 'date-fns/locale';
 import { adminApi } from '@/lib/api';
 import { isAuthenticated, isAdmin } from '@/lib/auth';
 import { TIME_SLOTS, BOOKING_STATUSES } from '@/lib/utils';
+import AdminLayout from '@/components/layout/AdminLayout';
 
 interface ScheduleBooking {
   id: number;
@@ -25,89 +26,106 @@ interface LiftSchedule {
 }
 
 const STATUS_COLORS: Record<string, string> = {
-  new: 'bg-yellow-200 border-yellow-400',
-  confirmed: 'bg-blue-200 border-blue-400',
-  in_progress: 'bg-orange-200 border-orange-400',
-  completed: 'bg-green-200 border-green-400',
-  cancelled: 'bg-gray-100 border-gray-300 opacity-50',
+  new: 'bg-yellow-500/20 border-yellow-500/50 text-yellow-300',
+  confirmed: 'bg-blue-500/20 border-blue-500/50 text-blue-300',
+  in_progress: 'bg-orange-500/20 border-orange-500/50 text-orange-300',
+  completed: 'bg-green-500/20 border-green-500/50 text-green-300',
+  cancelled: 'bg-dark-200 border-dark-200 text-dark-300 opacity-50',
 };
 
 export default function AdminSchedulePage() {
   const router = useRouter();
   const [date, setDate] = useState(new Date());
   const [lifts, setLifts] = useState<LiftSchedule[]>([]);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     if (!isAuthenticated() || !isAdmin()) { router.push('/auth/login'); return; }
   }, [router]);
 
   useEffect(() => {
+    setLoading(true);
     const dateStr = format(date, 'yyyy-MM-dd');
     adminApi.getSchedule(dateStr)
       .then((res) => setLifts(res.data.lifts || []))
-      .catch(console.error);
+      .catch(console.error)
+      .finally(() => setLoading(false));
   }, [date]);
 
-  const getBookingAtSlot = (lift: LiftSchedule, slot: string) => {
-    return lift.bookings.find((b) => {
-      const bTime = b.time_slot.slice(0, 5);
-      return bTime === slot;
-    });
-  };
+  const getBookingAtSlot = (lift: LiftSchedule, slot: string) =>
+    lift.bookings.find((b) => b.time_slot.slice(0, 5) === slot);
 
   return (
     <>
-      <Head><title>Расписание — Админ</title></Head>
-      <div className="min-h-screen bg-gray-100">
-        <header className="bg-dark-DEFAULT text-white px-6 py-4 flex gap-6 items-center">
-          <Link href="/admin" className="text-primary-500 font-bold">← Дашборд</Link>
-          <h1 className="text-lg font-semibold">Расписание подъёмников</h1>
-        </header>
-        <main className="max-w-7xl mx-auto py-8 px-4">
-          {/* Date nav */}
-          <div className="flex items-center gap-4 mb-6">
-            <button onClick={() => setDate((d) => subDays(d, 1))} className="btn-outline px-3 py-1.5 text-sm">←</button>
-            <span className="text-lg font-semibold">{format(date, 'EEEE, d MMMM yyyy', { locale: ru })}</span>
-            <button onClick={() => setDate((d) => addDays(d, 1))} className="btn-outline px-3 py-1.5 text-sm">→</button>
-            <button onClick={() => setDate(new Date())} className="text-sm text-primary-500 hover:underline ml-2">Сегодня</button>
-          </div>
+      <Head><title>Расписание — АвтоДвиж Admin</title></Head>
+      <AdminLayout title="Расписание подъёмников">
+        {/* Date nav */}
+        <div className="flex items-center gap-3 mb-6 flex-wrap">
+          <button
+            onClick={() => setDate((d) => subDays(d, 1))}
+            className="w-9 h-9 rounded-xl bg-dark-100 border border-dark-200 flex items-center justify-center hover:border-primary-500/50 transition-colors"
+          >
+            <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+              <path strokeLinecap="round" strokeLinejoin="round" d="M15.75 19.5L8.25 12l7.5-7.5" />
+            </svg>
+          </button>
+          <span className="text-lg font-semibold capitalize min-w-[220px] text-center">
+            {format(date, 'EEEE, d MMMM', { locale: ru })}
+          </span>
+          <button
+            onClick={() => setDate((d) => addDays(d, 1))}
+            className="w-9 h-9 rounded-xl bg-dark-100 border border-dark-200 flex items-center justify-center hover:border-primary-500/50 transition-colors"
+          >
+            <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+              <path strokeLinecap="round" strokeLinejoin="round" d="M8.25 4.5l7.5 7.5-7.5 7.5" />
+            </svg>
+          </button>
+          <button onClick={() => setDate(new Date())} className="text-sm text-primary-400 hover:text-primary-300 transition-colors ml-1">
+            Сегодня
+          </button>
+        </div>
 
-          {/* Legend */}
-          <div className="flex gap-3 mb-4 flex-wrap text-xs">
-            {Object.entries(BOOKING_STATUSES).map(([key, val]) => (
-              <span key={key} className={`px-2 py-1 rounded border font-medium ${STATUS_COLORS[key]}`}>{val.label}</span>
-            ))}
-          </div>
+        {/* Legend */}
+        <div className="flex gap-2 mb-4 flex-wrap">
+          {Object.entries(BOOKING_STATUSES).map(([key, val]) => (
+            <span key={key} className={`badge text-xs border ${STATUS_COLORS[key]}`}>{val.label}</span>
+          ))}
+        </div>
 
-          {/* Grid */}
-          <div className="bg-white rounded-xl shadow overflow-auto">
-            <table className="w-full text-sm border-collapse">
+        {/* Grid */}
+        {loading ? (
+          <div className="card animate-pulse h-64" />
+        ) : (
+          <div className="card p-0 overflow-auto">
+            <table className="w-full text-sm border-collapse min-w-[600px]">
               <thead>
-                <tr className="bg-gray-50">
-                  <th className="px-4 py-3 text-left text-gray-500 w-20 border-r">Время</th>
+                <tr className="border-b border-dark-200 bg-dark-200/30">
+                  <th className="px-3 py-3 text-left text-xs text-dark-300 font-medium w-16 border-r border-dark-200">Время</th>
                   {lifts.map((l) => (
-                    <th key={l.id} className="px-4 py-3 text-center font-semibold border-r last:border-r-0">{l.name}</th>
+                    <th key={l.id} className="px-3 py-3 text-center text-sm font-semibold border-r border-dark-200 last:border-r-0">
+                      {l.name}
+                    </th>
                   ))}
                 </tr>
               </thead>
               <tbody>
                 {TIME_SLOTS.map((slot) => (
-                  <tr key={slot} className="border-t">
-                    <td className="px-4 py-2 text-gray-400 font-mono border-r">{slot}</td>
+                  <tr key={slot} className="border-t border-dark-200">
+                    <td className="px-3 py-2 text-dark-300 font-mono text-xs border-r border-dark-200">{slot}</td>
                     {lifts.map((lift) => {
                       const booking = getBookingAtSlot(lift, slot);
                       return (
-                        <td key={lift.id} className="px-2 py-1 border-r last:border-r-0 h-12">
+                        <td key={lift.id} className="px-2 py-1 border-r border-dark-200 last:border-r-0 h-11">
                           {booking ? (
                             <Link
                               href={`/admin/bookings/${booking.id}`}
-                              className={`block rounded border px-2 py-1 text-xs leading-tight hover:opacity-80 transition ${STATUS_COLORS[booking.status]}`}
+                              className={`block rounded-lg border px-2 py-1 text-xs leading-tight hover:opacity-80 transition ${STATUS_COLORS[booking.status]}`}
                             >
                               <p className="font-medium truncate">{booking.client_name}</p>
-                              <p className="text-gray-600 truncate">{booking.service?.name || booking.custom_service}</p>
+                              <p className="truncate opacity-80">{booking.service?.name || booking.custom_service}</p>
                             </Link>
                           ) : (
-                            <div className="h-full w-full rounded bg-green-50 border border-green-100" />
+                            <div className="h-full w-full rounded-lg bg-green-500/5 border border-green-500/10" />
                           )}
                         </td>
                       );
@@ -117,8 +135,8 @@ export default function AdminSchedulePage() {
               </tbody>
             </table>
           </div>
-        </main>
-      </div>
+        )}
+      </AdminLayout>
     </>
   );
 }

@@ -44,30 +44,41 @@ export default function CabinetSettingsPage() {
 
   return (
     <>
-      <Head><title>Настройки — АвтоСервис</title></Head>
-      <div className="min-h-screen bg-gray-50">
-        <div className="max-w-lg mx-auto py-10 px-4">
-          <div className="flex items-center justify-between mb-8">
-            <h1 className="text-2xl font-bold">Настройки профиля</h1>
-            <Link href="/cabinet" className="text-sm text-gray-500 hover:underline">← Назад</Link>
+      <Head><title>Настройки — АвтоДвиж</title></Head>
+      <div className="min-h-screen bg-dark-DEFAULT">
+        <div className="bg-dark-100 border-b border-dark-200 px-4 py-4">
+          <div className="max-w-lg mx-auto flex items-center gap-4">
+            <Link href="/cabinet" className="text-dark-300 hover:text-white transition-colors">
+              <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                <path strokeLinecap="round" strokeLinejoin="round" d="M10.5 19.5L3 12m0 0l7.5-7.5M3 12h18" />
+              </svg>
+            </Link>
+            <h1 className="text-xl font-bold">Настройки профиля</h1>
           </div>
+        </div>
+        <div className="max-w-lg mx-auto py-8 px-4">
           <div className="card">
             <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
               {[
                 { key: 'name', label: 'Имя', type: 'text' },
                 { key: 'email', label: 'Email', type: 'email' },
                 { key: 'phone', label: 'Телефон', type: 'tel' },
-                { key: 'password', label: 'Новый пароль (оставьте пустым)', type: 'password' },
               ].map(({ key, label, type }) => (
                 <div key={key}>
-                  <label className="block text-sm font-medium mb-1">{label}</label>
+                  <label className="block text-sm font-medium text-dark-300 mb-1.5">{label}</label>
                   <input {...register(key as keyof FormData)} type={type} className="input-field" />
                   {errors[key as keyof FormData] && (
-                    <p className="text-red-500 text-sm mt-1">{errors[key as keyof FormData]?.message}</p>
+                    <p className="text-red-400 text-sm mt-1">{errors[key as keyof FormData]?.message}</p>
                   )}
                 </div>
               ))}
-              <button type="submit" disabled={isSubmitting} className="btn-primary w-full">
+              <div className="pt-2 border-t border-dark-200">
+                <label className="block text-sm font-medium text-dark-300 mb-1.5">
+                  Новый пароль <span className="text-dark-200 text-xs">(оставьте пустым, если не меняете)</span>
+                </label>
+                <input {...register('password')} type="password" className="input-field" placeholder="••••••••" />
+              </div>
+              <button type="submit" disabled={isSubmitting} className="btn-primary w-full py-3 disabled:opacity-50">
                 {isSubmitting ? 'Сохранение...' : 'Сохранить изменения'}
               </button>
             </form>

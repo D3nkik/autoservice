@@ -4,6 +4,7 @@ import { useRouter } from 'next/router';
 import Link from 'next/link';
 import { adminApi } from '@/lib/api';
 import { isAuthenticated, isAdmin } from '@/lib/auth';
+import AdminLayout from '@/components/layout/AdminLayout';
 
 interface DashboardData {
   todayBookings: number;
@@ -22,57 +23,80 @@ export default function AdminDashboard() {
 
   return (
     <>
-      <Head><title>Дашборд — Админ</title></Head>
-      <div className="min-h-screen bg-gray-100">
-        <header className="bg-dark-DEFAULT text-white px-6 py-4 flex justify-between items-center">
-          <span className="text-xl font-bold">АвтоСервис <span className="text-primary-500">Admin</span></span>
-          <nav className="flex gap-6 text-sm">
-            <Link href="/admin" className="hover:text-primary-400">Дашборд</Link>
-            <Link href="/admin/bookings" className="hover:text-primary-400">Заявки</Link>
-            <Link href="/admin/schedule" className="hover:text-primary-400">Расписание</Link>
-            <Link href="/admin/clients" className="hover:text-primary-400">Клиенты</Link>
-            <Link href="/admin/services" className="hover:text-primary-400">Услуги</Link>
-          </nav>
-        </header>
-        <main className="max-w-5xl mx-auto py-10 px-4">
-          <h1 className="text-2xl font-bold mb-8">Дашборд</h1>
-          {data ? (
-            <>
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-10">
-                <div className="card text-center">
-                  <p className="text-4xl font-bold text-primary-500">{data.todayBookings}</p>
-                  <p className="text-gray-500 mt-1">Записей сегодня</p>
-                </div>
-                <div className="card text-center">
-                  <p className="text-4xl font-bold text-yellow-500">{data.newBookings}</p>
-                  <p className="text-gray-500 mt-1">Необработанных</p>
-                </div>
-                <div className="card text-center">
-                  <p className="text-4xl font-bold text-green-500">4</p>
-                  <p className="text-gray-500 mt-1">Подъёмников</p>
-                </div>
+      <Head><title>Дашборд — АвтоДвиж Admin</title></Head>
+      <AdminLayout title="Дашборд">
+        {!data ? (
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            {[1, 2, 3].map((i) => (
+              <div key={i} className="card animate-pulse h-28" />
+            ))}
+          </div>
+        ) : (
+          <>
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-8">
+              <div className="card text-center">
+                <p className="text-4xl font-black text-primary-400">{data.todayBookings}</p>
+                <p className="text-dark-300 text-sm mt-2">Записей сегодня</p>
               </div>
-              <h2 className="text-lg font-semibold mb-4">Загрузка подъёмников сегодня</h2>
-              <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                {data.liftsLoad.map((l) => (
+              <div className="card text-center">
+                <p className="text-4xl font-black text-yellow-400">{data.newBookings}</p>
+                <p className="text-dark-300 text-sm mt-2">Необработанных</p>
+                {data.newBookings > 0 && (
+                  <Link href="/admin/bookings?status=new" className="text-xs text-primary-400 hover:underline mt-1 inline-block">
+                    Посмотреть →
+                  </Link>
+                )}
+              </div>
+              <div className="card text-center">
+                <p className="text-4xl font-black text-green-400">4</p>
+                <p className="text-dark-300 text-sm mt-2">Подъёмника</p>
+              </div>
+            </div>
+
+            <h2 className="text-lg font-semibold mb-4">Загрузка подъёмников сегодня</h2>
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
+              {data.liftsLoad.map((l) => {
+                const pct = l.total > 0 ? Math.round((l.used / l.total) * 100) : 0;
+                return (
                   <div key={l.lift_id} className="card text-center">
-                    <p className="font-medium text-sm mb-2">{l.name}</p>
-                    <div className="w-full bg-gray-200 rounded-full h-3">
-                      <div
-                        className="bg-primary-500 h-3 rounded-full"
-                        style={{ width: `${(l.used / l.total) * 100}%` }}
-                      />
+                    <p className="font-semibold text-sm mb-3">{l.name}</p>
+                    <div className="relative w-16 h-16 mx-auto mb-3">
+                      <svg className="w-16 h-16 -rotate-90" viewBox="0 0 36 36">
+                        <circle cx="18" cy="18" r="15.9" fill="none" stroke="#334155" strokeWidth="3" />
+                        <circle
+                          cx="18" cy="18" r="15.9" fill="none"
+                          stroke="#f97316" strokeWidth="3"
+                          strokeDasharray={`${pct} ${100 - pct}`}
+                          strokeLinecap="round"
+                        />
+                      </svg>
+                      <span className="absolute inset-0 flex items-center justify-center text-sm font-bold">{pct}%</span>
                     </div>
-                    <p className="text-xs text-gray-500 mt-1">{l.used}/{l.total} слотов</p>
+                    <p className="text-xs text-dark-300">{l.used}/{l.total} слотов</p>
                   </div>
-                ))}
-              </div>
-            </>
-          ) : (
-            <p className="text-gray-500">Загрузка...</p>
-          )}
-        </main>
-      </div>
+                );
+              })}
+            </div>
+
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
+              {[
+                { href: '/admin/bookings', label: 'Все заявки', icon: '📋', desc: 'Просмотр и управление' },
+                { href: '/admin/schedule', label: 'Расписание', icon: '📅', desc: 'Сетка по подъёмникам' },
+                { href: '/admin/clients', label: 'Клиенты', icon: '👥', desc: 'База клиентов' },
+                { href: '/admin/services', label: 'Услуги', icon: '🔧', desc: 'Управление прайсом' },
+              ].map((item) => (
+                <Link key={item.href} href={item.href} className="card-hover flex items-center gap-3">
+                  <span className="text-2xl">{item.icon}</span>
+                  <div>
+                    <p className="font-semibold text-sm">{item.label}</p>
+                    <p className="text-dark-300 text-xs">{item.desc}</p>
+                  </div>
+                </Link>
+              ))}
+            </div>
+          </>
+        )}
+      </AdminLayout>
     </>
   );
 }
