@@ -55,7 +55,7 @@ export default function RegisterPage() {
 
   return (
     <>
-      <Head><title>Регистрация — АвтоДвиж</title></Head>
+      <Head><title>Регистрация — АвтоСервис</title></Head>
       <div className="min-h-screen bg-dark flex items-center justify-center px-4 py-12">
         <div className="w-full max-w-md">
           <div className="text-center mb-8">

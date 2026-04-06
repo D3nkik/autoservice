@@ -170,7 +170,7 @@ export default function AdminSchedulePage() {
 
   return (
     <>
-      <Head><title>Расписание — АвтоДвиж Admin</title></Head>
+      <Head><title>Расписание — АвтоСервис Admin</title></Head>
       <AdminLayout title="Расписание подъёмников">
         {/* Date nav */}
         <div className="flex items-center gap-3 mb-6 flex-wrap">

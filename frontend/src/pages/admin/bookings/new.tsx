@@ -76,7 +76,7 @@ export default function AdminNewBookingPage() {
 
   return (
     <>
-      <Head><title>Новая заявка — АвтоДвиж Admin</title></Head>
+      <Head><title>Новая заявка — АвтоСервис Admin</title></Head>
       <AdminLayout>
         <div className="flex items-center gap-3 mb-6">
           <Link href="/admin/bookings" className="text-dark-300 hover:text-white transition-colors">

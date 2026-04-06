@@ -23,7 +23,7 @@ export default function AdminDashboard() {
 
   return (
     <>
-      <Head><title>Дашборд — АвтоДвиж Admin</title></Head>
+      <Head><title>Дашборд — АвтоСервис Admin</title></Head>
       <AdminLayout title="Дашборд">
         {!data ? (
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">

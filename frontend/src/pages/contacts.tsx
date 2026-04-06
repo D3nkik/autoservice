@@ -7,8 +7,8 @@ export default function ContactsPage() {
   return (
     <>
       <Head>
-        <title>Контакты — АвтоДвиж Симферополь</title>
-        <meta name="description" content="Контакты автосервиса АвтоДвиж в Симферополе. Адреса, телефоны, режим работы." />
+        <title>Контакты — АвтоСервис Симферополь</title>
+        <meta name="description" content="Контакты автосервиса АвтоСервис в Симферополе. Адреса, телефоны, режим работы." />
       </Head>
       <Header />
       <main>

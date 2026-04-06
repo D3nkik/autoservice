@@ -7,8 +7,8 @@ export default function BookingPage() {
   return (
     <>
       <Head>
-        <title>Онлайн-запись — АвтоДвиж</title>
-        <meta name="description" content="Запишитесь в автосервис АвтоДвиж онлайн. Быстро и удобно." />
+        <title>Онлайн-запись — АвтоСервис</title>
+        <meta name="description" content="Запишитесь в автосервис АвтоСервис онлайн. Быстро и удобно." />
       </Head>
       <Header />
       <main>

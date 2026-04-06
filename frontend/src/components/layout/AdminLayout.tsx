@@ -75,7 +75,7 @@ export default function AdminLayout({ children, title }: Props) {
               </svg>
             </div>
             <div>
-              <p className="font-bold text-sm">АвтоДвиж</p>
+              <p className="font-bold text-sm">АвтоСервис</p>
               <p className="text-xs text-primary-400">Панель управления</p>
             </div>
           </Link>
@@ -116,7 +116,7 @@ export default function AdminLayout({ children, title }: Props) {
       <div className="flex-1 flex flex-col min-w-0">
         {/* Mobile header */}
         <header className="md:hidden bg-dark-100 border-b border-dark-200 px-4 py-3 flex items-center justify-between">
-          <span className="font-bold">АвтоДвиж <span className="text-primary-400">Admin</span></span>
+          <span className="font-bold">АвтоСервис <span className="text-primary-400">Admin</span></span>
           <div className="flex gap-1">
             {navItems.map(({ href, icon }) => (
               <Link

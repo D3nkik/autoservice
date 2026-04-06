@@ -101,7 +101,7 @@ export default function AdminBookingDetailPage() {
 
   return (
     <>
-      <Head><title>Заявка #{booking.id} — АвтоДвиж Admin</title></Head>
+      <Head><title>Заявка #{booking.id} — АвтоСервис Admin</title></Head>
       <AdminLayout>
         {/* Back + title */}
         <div className="flex items-center gap-3 mb-6">

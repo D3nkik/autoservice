@@ -81,7 +81,7 @@ export default function CabinetPage() {
 
   return (
     <>
-      <Head><title>Личный кабинет — АвтоДвиж</title></Head>
+      <Head><title>Личный кабинет — АвтоСервис</title></Head>
       <div className="min-h-screen bg-dark">
         {/* Header */}
         <header className="bg-dark-100 border-b border-dark-200 px-4 py-4">

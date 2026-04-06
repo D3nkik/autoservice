@@ -41,7 +41,7 @@ export default function CabinetCarPage() {
 
   return (
     <>
-      <Head><title>Мой автомобиль — АвтоДвиж</title></Head>
+      <Head><title>Мой автомобиль — АвтоСервис</title></Head>
       <div className="min-h-screen bg-dark">
         <div className="bg-dark-100 border-b border-dark-200 px-4 py-4">
           <div className="max-w-lg mx-auto flex items-center gap-4">

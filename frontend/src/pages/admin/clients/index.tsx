@@ -38,7 +38,7 @@ export default function AdminClientsPage() {
 
   return (
     <>
-      <Head><title>Клиенты — АвтоДвиж Admin</title></Head>
+      <Head><title>Клиенты — АвтоСервис Admin</title></Head>
       <AdminLayout title="Клиенты">
         <div className="relative max-w-sm mb-6">
           <svg className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-dark-300" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>

@@ -97,7 +97,7 @@ export default function Footer() {
         </div>
       </div>
       <div className="border-t border-dark-200 py-5 px-4 text-center text-xs text-dark-300">
-        © {new Date().getFullYear()} АвтоДвиж. Все права защищены.
+        © {new Date().getFullYear()} АвтоСервис. Все права защищены.
       </div>
     </footer>
   );

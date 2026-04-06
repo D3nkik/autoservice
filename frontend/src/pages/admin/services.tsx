@@ -45,7 +45,7 @@ export default function AdminServicesPage() {
 
   return (
     <>
-      <Head><title>Услуги — АвтоДвиж Admin</title></Head>
+      <Head><title>Услуги — АвтоСервис Admin</title></Head>
       <AdminLayout title="Управление услугами">
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
           {/* Form */}

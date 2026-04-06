@@ -47,7 +47,7 @@ export default function AdminBookingsPage() {
 
   return (
     <>
-      <Head><title>Заявки — АвтоДвиж Admin</title></Head>
+      <Head><title>Заявки — АвтоСервис Admin</title></Head>
       <AdminLayout title="Заявки">
         {/* Filters */}
         <div className="flex flex-col sm:flex-row gap-3 mb-6">

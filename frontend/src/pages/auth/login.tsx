@@ -35,7 +35,7 @@ export default function LoginPage() {
 
   return (
     <>
-      <Head><title>Вход — АвтоДвиж</title></Head>
+      <Head><title>Вход — АвтоСервис</title></Head>
       <div className="min-h-screen bg-dark flex items-center justify-center px-4 py-12">
         <div className="w-full max-w-md">
           <div className="text-center mb-8">
