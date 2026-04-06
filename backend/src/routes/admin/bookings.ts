@@ -12,10 +12,11 @@ const router = Router();
 
 // GET /api/admin/bookings
 router.get('/', async (req: Request, res: Response) => {
-  const { status, search, date, lift_id } = req.query;
+  const { status, search, date, lift_id, exclude_cancelled } = req.query;
   const where: Record<string, unknown> = {};
 
-  if (status) where.status = status;
+  if (exclude_cancelled) where.status = { not: 'cancelled' };
+  else if (status) where.status = status;
   if (lift_id) where.lift_id = parseInt(String(lift_id));
   if (date) {
     const d = new Date(String(date));

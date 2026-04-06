@@ -19,12 +19,12 @@ interface Booking {
   lift?: { name: string };
 }
 
-const STATUS_FILTERS = ['all', 'new', 'confirmed', 'in_progress', 'completed', 'cancelled'] as const;
+const STATUS_FILTERS = ['active', 'new', 'confirmed', 'in_progress', 'completed', 'cancelled'] as const;
 
 export default function AdminBookingsPage() {
   const router = useRouter();
   const [bookings, setBookings] = useState<Booking[]>([]);
-  const [filter, setFilter] = useState<string>('all');
+  const [filter, setFilter] = useState<string>('active');
   const [search, setSearch] = useState('');
   const [loading, setLoading] = useState(true);
 
@@ -37,7 +37,8 @@ export default function AdminBookingsPage() {
   useEffect(() => {
     setLoading(true);
     const params: Record<string, string> = {};
-    if (filter !== 'all') params.status = filter;
+    if (filter === 'active') params.exclude_cancelled = '1';
+    else if (filter !== 'all') params.status = filter;
     if (search) params.search = search;
     adminApi.getBookings(params)
       .then((res) => setBookings(res.data))
@@ -78,7 +79,7 @@ export default function AdminBookingsPage() {
                     : 'bg-dark-100 border-dark-200 text-dark-300 hover:text-white hover:border-dark-300'
                 }`}
               >
-                {s === 'all' ? 'Все' : BOOKING_STATUSES[s as keyof typeof BOOKING_STATUSES]?.label}
+                {s === 'active' ? 'Активные' : BOOKING_STATUSES[s as keyof typeof BOOKING_STATUSES]?.label}
               </button>
             ))}
           </div>

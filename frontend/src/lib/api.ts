@@ -147,6 +147,7 @@ export interface AdminBookingUpdate {
 export interface AdminCreateBookingPayload extends CreateBookingPayload {
   lift_id?: number;
   user_id?: number;
+  duration_hours?: number;
 }
 
 export interface ServicePayload {

@@ -61,7 +61,6 @@ export default function AdminSchedulePage() {
   const [services, setServices] = useState<{ id: number; name: string }[]>([]);
   const [serviceId, setServiceId] = useState('');
 
-  // Quick-create drawer
   const [drawer, setDrawer] = useState(false);
   const [form, setForm] = useState<QuickForm>(EMPTY_FORM);
   const [saving, setSaving] = useState(false);
@@ -87,8 +86,24 @@ export default function AdminSchedulePage() {
 
   useEffect(() => { reload(); }, [date]);
 
-  const getBookingAtSlot = (lift: LiftSchedule, slot: string) =>
-    lift.bookings.find((b) => b.time_slot.slice(0, 5) === slot);
+  // Pre-compute which (liftId, slotIndex) cells are "continuation" of a multi-hour booking
+  // Those cells must NOT render a <td> because a rowSpan above covers them
+  const continuationSet = new Set<string>(); // "liftId:slotIndex"
+  for (const lift of lifts) {
+    for (const b of lift.bookings) {
+      const startIdx = TIME_SLOTS.indexOf(b.time_slot.slice(0, 5));
+      if (startIdx === -1) continue;
+      const span = Math.ceil(b.duration_hours);
+      for (let i = 1; i < span; i++) {
+        if (startIdx + i < TIME_SLOTS.length) {
+          continuationSet.add(`${lift.id}:${startIdx + i}`);
+        }
+      }
+    }
+  }
+
+  const getBookingAtSlot = (lift: LiftSchedule, slotIdx: number) =>
+    lift.bookings.find((b) => TIME_SLOTS.indexOf(b.time_slot.slice(0, 5)) === slotIdx);
 
   const openDrawer = (slot: string, lift: LiftSchedule) => {
     setForm({ ...EMPTY_FORM, date: format(date, 'yyyy-MM-dd'), time_slot: slot, lift_id: lift.id, lift_name: lift.name });
@@ -99,7 +114,6 @@ export default function AdminSchedulePage() {
   const setF = (k: keyof QuickForm, v: string | number | null) =>
     setForm((f) => ({ ...f, [k]: v }));
 
-  // Phone autocomplete
   const onPhoneChange = (phone: string) => {
     setF('client_phone', phone);
     if (phoneTimer.current) clearTimeout(phoneTimer.current);
@@ -151,6 +165,9 @@ export default function AdminSchedulePage() {
     }
   };
 
+  // Row height per slot in pixels (used to calculate rowSpan height label)
+  const SLOT_H = 44; // matches h-11 = 44px
+
   return (
     <>
       <Head><title>Расписание — АвтоДвиж Admin</title></Head>
@@ -168,7 +185,7 @@ export default function AdminSchedulePage() {
           </button>
           <button onClick={() => setDate(new Date())} className="text-sm text-primary-400 hover:text-primary-300 transition-colors ml-1">Сегодня</button>
           <div className="flex-1" />
-          <p className="text-xs text-dark-300 hidden sm:block">Нажмите на свободную ячейку чтобы создать запись</p>
+          <p className="text-xs text-dark-300 hidden sm:block">Нажмите на свободную ячейку чтобы записать клиента</p>
         </div>
 
         {/* Legend */}
@@ -178,7 +195,6 @@ export default function AdminSchedulePage() {
           ))}
         </div>
 
-        {/* Grid */}
         {loading ? (
           <div className="card animate-pulse h-64" />
         ) : (
@@ -198,27 +214,43 @@ export default function AdminSchedulePage() {
                 </tr>
               </thead>
               <tbody>
-                {TIME_SLOTS.map((slot) => {
+                {TIME_SLOTS.map((slot, slotIdx) => {
                   const unassignedAtSlot = unassigned.filter((b) => b.time_slot.slice(0, 5) === slot);
                   return (
                     <tr key={slot} className="border-t border-dark-200">
-                      <td className="px-3 py-2 text-dark-300 font-mono text-xs border-r border-dark-200">{slot}</td>
+                      <td className="px-3 py-2 text-dark-300 font-mono text-xs border-r border-dark-200 align-top pt-3">{slot}</td>
+
                       {lifts.map((lift) => {
-                        const booking = getBookingAtSlot(lift, slot);
+                        // Skip cell if covered by a rowSpan above
+                        if (continuationSet.has(`${lift.id}:${slotIdx}`)) return null;
+
+                        const booking = getBookingAtSlot(lift, slotIdx);
+                        const rowSpan = booking ? Math.max(1, Math.ceil(booking.duration_hours)) : 1;
+                        const cellH = rowSpan > 1 ? `${rowSpan * SLOT_H - 4}px` : undefined;
+
                         return (
-                          <td key={lift.id} className="px-2 py-1 border-r border-dark-200 last:border-r-0 h-11">
+                          <td
+                            key={lift.id}
+                            rowSpan={rowSpan}
+                            className="px-2 py-1 border-r border-dark-200 last:border-r-0 align-top"
+                            style={{ height: rowSpan === 1 ? `${SLOT_H}px` : undefined }}
+                          >
                             {booking ? (
                               <Link
                                 href={`/admin/bookings/${booking.id}`}
-                                className={`block rounded-lg border px-2 py-1 text-xs leading-tight hover:opacity-80 transition ${STATUS_COLORS[booking.status]}`}
+                                style={{ minHeight: cellH }}
+                                className={`flex flex-col rounded-lg border px-2 py-1.5 text-xs leading-tight hover:opacity-80 transition ${STATUS_COLORS[booking.status]}`}
                               >
-                                <p className="font-medium truncate">{booking.client_name}</p>
-                                <p className="truncate opacity-80">{booking.service?.name || booking.custom_service}</p>
+                                <p className="font-semibold truncate">{booking.client_name}</p>
+                                <p className="truncate opacity-80 mt-0.5">{booking.service?.name || booking.custom_service}</p>
+                                {booking.duration_hours > 1 && (
+                                  <p className="mt-auto pt-1 opacity-60 text-[10px]">{booking.duration_hours} ч.</p>
+                                )}
                               </Link>
                             ) : (
                               <button
                                 onClick={() => openDrawer(slot, lift)}
-                                className="h-full w-full rounded-lg bg-green-500/5 border border-green-500/10 hover:bg-primary-500/10 hover:border-primary-500/30 transition-colors group flex items-center justify-center"
+                                className="h-full w-full min-h-[36px] rounded-lg bg-green-500/5 border border-green-500/10 hover:bg-primary-500/10 hover:border-primary-500/30 transition-colors group flex items-center justify-center"
                               >
                                 <svg className="w-3 h-3 text-dark-300 group-hover:text-primary-400 transition-colors opacity-0 group-hover:opacity-100" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
                                   <path strokeLinecap="round" strokeLinejoin="round" d="M12 4.5v15m7.5-7.5h-15" />
@@ -228,8 +260,9 @@ export default function AdminSchedulePage() {
                           </td>
                         );
                       })}
+
                       {unassigned.length > 0 && (
-                        <td className="px-2 py-1 h-11 space-y-1">
+                        <td className="px-2 py-1 align-top space-y-1" style={{ height: `${SLOT_H}px` }}>
                           {unassignedAtSlot.map((b) => (
                             <Link key={b.id} href={`/admin/bookings/${b.id}`}
                               className={`block rounded-lg border px-2 py-1 text-xs leading-tight hover:opacity-80 transition ${STATUS_COLORS[b.status]}`}
@@ -252,11 +285,8 @@ export default function AdminSchedulePage() {
       {/* Quick-create drawer */}
       {drawer && (
         <div className="fixed inset-0 z-50 flex justify-end">
-          {/* Backdrop */}
           <div className="absolute inset-0 bg-black/60" onClick={() => setDrawer(false)} />
-          {/* Panel */}
           <div className="relative w-full max-w-md bg-dark-100 border-l border-dark-200 h-full overflow-y-auto flex flex-col shadow-2xl">
-            {/* Header */}
             <div className="flex items-center justify-between px-5 py-4 border-b border-dark-200">
               <div>
                 <h2 className="font-bold text-white">Новая запись</h2>
@@ -271,55 +301,33 @@ export default function AdminSchedulePage() {
               </button>
             </div>
 
-            {/* Form */}
             <div className="flex-1 p-5 space-y-4">
-              {/* Phone */}
               <div>
                 <label className="block text-sm font-medium text-dark-300 mb-1.5">
                   Телефон *
-                  {phoneSearching && <span className="ml-2 text-xs text-primary-400">поиск клиента...</span>}
+                  {phoneSearching && <span className="ml-2 text-xs text-primary-400">поиск...</span>}
                 </label>
-                <input
-                  type="tel"
-                  value={form.client_phone}
-                  onChange={(e) => onPhoneChange(e.target.value)}
-                  placeholder="+7 (XXX) XXX-XX-XX"
-                  className="input-field text-sm"
-                />
+                <input type="tel" value={form.client_phone} onChange={(e) => onPhoneChange(e.target.value)}
+                  placeholder="+7 (XXX) XXX-XX-XX" className="input-field text-sm" />
               </div>
 
-              {/* Name */}
               <div>
                 <label className="block text-sm font-medium text-dark-300 mb-1.5">Имя *</label>
-                <input
-                  type="text"
-                  value={form.client_name}
-                  onChange={(e) => setF('client_name', e.target.value)}
-                  placeholder="Иванов Иван"
-                  className="input-field text-sm"
-                />
+                <input type="text" value={form.client_name} onChange={(e) => setF('client_name', e.target.value)}
+                  placeholder="Иванов Иван" className="input-field text-sm" />
               </div>
 
-              {/* Email */}
               <div>
                 <label className="block text-sm font-medium text-dark-300 mb-1.5">Email</label>
-                <input
-                  type="email"
-                  value={form.client_email}
-                  onChange={(e) => setF('client_email', e.target.value)}
-                  placeholder="client@mail.ru"
-                  className="input-field text-sm"
-                />
+                <input type="email" value={form.client_email} onChange={(e) => setF('client_email', e.target.value)}
+                  placeholder="client@mail.ru" className="input-field text-sm" />
               </div>
 
-              {/* Service */}
               <div>
                 <label className="block text-sm font-medium text-dark-300 mb-1.5">Услуга</label>
                 <select value={serviceId} onChange={(e) => setServiceId(e.target.value)} className="input-field text-sm">
                   <option value="">— Другое —</option>
-                  {services.map((s) => (
-                    <option key={s.id} value={s.id}>{s.name}</option>
-                  ))}
+                  {services.map((s) => <option key={s.id} value={s.id}>{s.name}</option>)}
                   <option value="other">Своё описание</option>
                 </select>
               </div>
@@ -327,25 +335,16 @@ export default function AdminSchedulePage() {
               {(!serviceId || serviceId === 'other') && (
                 <div>
                   <label className="block text-sm font-medium text-dark-300 mb-1.5">Описание работ</label>
-                  <input
-                    type="text"
-                    value={form.custom_service}
-                    onChange={(e) => setF('custom_service', e.target.value)}
-                    placeholder="Что нужно сделать..."
-                    className="input-field text-sm"
-                  />
+                  <input type="text" value={form.custom_service} onChange={(e) => setF('custom_service', e.target.value)}
+                    placeholder="Что нужно сделать..." className="input-field text-sm" />
                 </div>
               )}
 
-              {/* Duration */}
               <div>
-                <label className="block text-sm font-medium text-dark-300 mb-1.5">Длительность</label>
+                <label className="block text-sm font-medium text-dark-300 mb-2">Длительность</label>
                 <div className="grid grid-cols-6 gap-1.5">
-                  {[1, 1.5, 2, 2.5, 3, 4].map((h) => (
-                    <button
-                      key={h}
-                      type="button"
-                      onClick={() => setF('duration_hours', h)}
+                  {[0.5, 1, 1.5, 2, 2.5, 3, 3.5, 4, 5, 6, 7, 8].map((h) => (
+                    <button key={h} type="button" onClick={() => setF('duration_hours', h)}
                       className={`py-2 rounded-xl text-xs font-medium border transition-colors ${
                         form.duration_hours === h
                           ? 'bg-primary-500 border-primary-500 text-white'
@@ -359,16 +358,12 @@ export default function AdminSchedulePage() {
               </div>
             </div>
 
-            {/* Footer */}
             <div className="px-5 py-4 border-t border-dark-200 flex gap-3">
-              <button onClick={() => setDrawer(false)} className="flex-1 py-2.5 rounded-xl border border-dark-200 text-sm font-medium hover:bg-dark-200/50 transition-colors">
+              <button onClick={() => setDrawer(false)}
+                className="flex-1 py-2.5 rounded-xl border border-dark-200 text-sm font-medium hover:bg-dark-200/50 transition-colors">
                 Отмена
               </button>
-              <button
-                onClick={onSubmit}
-                disabled={saving}
-                className="flex-1 btn-primary py-2.5 text-sm disabled:opacity-50"
-              >
+              <button onClick={onSubmit} disabled={saving} className="flex-1 btn-primary py-2.5 text-sm disabled:opacity-50">
                 {saving ? 'Создание...' : 'Записать'}
               </button>
             </div>
