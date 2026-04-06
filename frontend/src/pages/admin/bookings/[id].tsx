@@ -42,7 +42,7 @@ export default function AdminBookingDetailPage() {
   const { id } = router.query;
   const [booking, setBooking] = useState<BookingDetail | null>(null);
   const [lifts, setLifts] = useState<Lift[]>([]);
-  const { register, handleSubmit, reset, formState: { isSubmitting } } = useForm<AdminBookingUpdate>();
+  const { register, handleSubmit, reset, getValues, formState: { isSubmitting } } = useForm<AdminBookingUpdate>();
 
   const load = async (bookingId: number) => {
     const [bRes, schedRes] = await Promise.all([
@@ -55,6 +55,7 @@ export default function AdminBookingDetailPage() {
       lift_id: bRes.data.lift?.id,
       admin_notes: bRes.data.admin_notes || '',
       total_price: bRes.data.total_price,
+      duration_hours: bRes.data.duration_hours || 1,
     });
   };
 
@@ -76,7 +77,9 @@ export default function AdminBookingDetailPage() {
 
   const setStatus = async (status: AdminBookingUpdate['status']) => {
     try {
-      await adminApi.updateBooking(Number(id), { status });
+      // Save current form values (lift, duration) together with status change
+      const { lift_id, duration_hours } = getValues();
+      await adminApi.updateBooking(Number(id), { status, lift_id, duration_hours });
       toast.success(`Статус: ${BOOKING_STATUSES[status!]?.label}`);
       await load(Number(id));
     } catch {
@@ -210,6 +213,14 @@ export default function AdminBookingDetailPage() {
                   <option value="">Не назначен</option>
                   {lifts.map((l) => (
                     <option key={l.id} value={l.id}>{l.name}</option>
+                  ))}
+                </select>
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-dark-300 mb-1.5">Длительность (ч.)</label>
+                <select {...register('duration_hours', { valueAsNumber: true })} className="input-field text-sm">
+                  {[0.5, 1, 1.5, 2, 2.5, 3, 3.5, 4, 5, 6, 7, 8].map((h) => (
+                    <option key={h} value={h}>{h} ч.</option>
                   ))}
                 </select>
               </div>

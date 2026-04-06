@@ -47,7 +47,7 @@ router.get('/:id', async (req: Request, res: Response) => {
 // PUT /api/admin/bookings/:id
 router.put('/:id', async (req: AuthRequest, res: Response) => {
   const id = parseInt(req.params.id);
-  const { lift_id, status, admin_notes, total_price, cancel_reason, service_description, mileage, user_id } = req.body;
+  const { lift_id, status, admin_notes, total_price, cancel_reason, service_description, mileage, user_id, duration_hours } = req.body;
 
   const booking = await prisma.booking.findUnique({
     where: { id },
@@ -76,6 +76,7 @@ router.put('/:id', async (req: AuthRequest, res: Response) => {
   if (total_price !== undefined) data.total_price = total_price;
   if (cancel_reason !== undefined) data.cancel_reason = cancel_reason;
   if (user_id !== undefined) data.user_id = user_id;
+  if (duration_hours !== undefined) data.duration_hours = parseInt(String(duration_hours));
 
   const updated = await prisma.booking.update({ where: { id }, data, include: { service: true, lift: true } });
 

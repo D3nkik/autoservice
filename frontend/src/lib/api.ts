@@ -138,6 +138,7 @@ export interface AdminBookingUpdate {
   status?: 'new' | 'confirmed' | 'in_progress' | 'completed' | 'cancelled';
   admin_notes?: string;
   total_price?: number;
+  duration_hours?: number;
   service_description?: string;
   mileage?: number;
   cancel_reason?: string;

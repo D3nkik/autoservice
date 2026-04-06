@@ -37,6 +37,7 @@ export default function AdminSchedulePage() {
   const router = useRouter();
   const [date, setDate] = useState(new Date());
   const [lifts, setLifts] = useState<LiftSchedule[]>([]);
+  const [unassigned, setUnassigned] = useState<ScheduleBooking[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -47,7 +48,10 @@ export default function AdminSchedulePage() {
     setLoading(true);
     const dateStr = format(date, 'yyyy-MM-dd');
     adminApi.getSchedule(dateStr)
-      .then((res) => setLifts(res.data.lifts || []))
+      .then((res) => {
+        setLifts(res.data.lifts || []);
+        setUnassigned(res.data.unassigned || []);
+      })
       .catch(console.error)
       .finally(() => setLoading(false));
   }, [date]);
@@ -102,36 +106,58 @@ export default function AdminSchedulePage() {
                 <tr className="border-b border-dark-200 bg-dark-200/30">
                   <th className="px-3 py-3 text-left text-xs text-dark-300 font-medium w-16 border-r border-dark-200">Время</th>
                   {lifts.map((l) => (
-                    <th key={l.id} className="px-3 py-3 text-center text-sm font-semibold border-r border-dark-200 last:border-r-0">
+                    <th key={l.id} className="px-3 py-3 text-center text-sm font-semibold border-r border-dark-200">
                       {l.name}
                     </th>
                   ))}
+                  {unassigned.length > 0 && (
+                    <th className="px-3 py-3 text-center text-sm font-semibold text-dark-300">
+                      Без подъёмника
+                    </th>
+                  )}
                 </tr>
               </thead>
               <tbody>
-                {TIME_SLOTS.map((slot) => (
-                  <tr key={slot} className="border-t border-dark-200">
-                    <td className="px-3 py-2 text-dark-300 font-mono text-xs border-r border-dark-200">{slot}</td>
-                    {lifts.map((lift) => {
-                      const booking = getBookingAtSlot(lift, slot);
-                      return (
-                        <td key={lift.id} className="px-2 py-1 border-r border-dark-200 last:border-r-0 h-11">
-                          {booking ? (
+                {TIME_SLOTS.map((slot) => {
+                  const unassignedAtSlot = unassigned.filter((b) => b.time_slot.slice(0, 5) === slot);
+                  return (
+                    <tr key={slot} className="border-t border-dark-200">
+                      <td className="px-3 py-2 text-dark-300 font-mono text-xs border-r border-dark-200">{slot}</td>
+                      {lifts.map((lift) => {
+                        const booking = getBookingAtSlot(lift, slot);
+                        return (
+                          <td key={lift.id} className="px-2 py-1 border-r border-dark-200 h-11">
+                            {booking ? (
+                              <Link
+                                href={`/admin/bookings/${booking.id}`}
+                                className={`block rounded-lg border px-2 py-1 text-xs leading-tight hover:opacity-80 transition ${STATUS_COLORS[booking.status]}`}
+                              >
+                                <p className="font-medium truncate">{booking.client_name}</p>
+                                <p className="truncate opacity-80">{booking.service?.name || booking.custom_service}</p>
+                              </Link>
+                            ) : (
+                              <div className="h-full w-full rounded-lg bg-green-500/5 border border-green-500/10" />
+                            )}
+                          </td>
+                        );
+                      })}
+                      {unassigned.length > 0 && (
+                        <td className="px-2 py-1 h-11 space-y-1">
+                          {unassignedAtSlot.map((b) => (
                             <Link
-                              href={`/admin/bookings/${booking.id}`}
-                              className={`block rounded-lg border px-2 py-1 text-xs leading-tight hover:opacity-80 transition ${STATUS_COLORS[booking.status]}`}
+                              key={b.id}
+                              href={`/admin/bookings/${b.id}`}
+                              className={`block rounded-lg border px-2 py-1 text-xs leading-tight hover:opacity-80 transition ${STATUS_COLORS[b.status]}`}
                             >
-                              <p className="font-medium truncate">{booking.client_name}</p>
-                              <p className="truncate opacity-80">{booking.service?.name || booking.custom_service}</p>
+                              <p className="font-medium truncate">{b.client_name}</p>
+                              <p className="truncate opacity-80">{b.service?.name || b.custom_service}</p>
                             </Link>
-                          ) : (
-                            <div className="h-full w-full rounded-lg bg-green-500/5 border border-green-500/10" />
-                          )}
+                          ))}
                         </td>
-                      );
-                    })}
-                  </tr>
-                ))}
+                      )}
+                    </tr>
+                  );
+                })}
               </tbody>
             </table>
           </div>

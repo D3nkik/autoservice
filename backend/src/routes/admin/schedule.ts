@@ -8,8 +8,9 @@ router.get('/', async (req: Request, res: Response) => {
   const { date } = req.query;
   if (!date) return res.status(400).json({ message: 'Укажите дату' });
 
-  const dayStart = new Date(`${date}T00:00:00.000Z`);
-  const dayEnd = new Date(`${date}T23:59:59.999Z`);
+  // Use date-only comparison to avoid timezone issues
+  const dayStart = new Date(`${date}T00:00:00.000`);
+  const dayEnd = new Date(`${date}T23:59:59.999`);
 
   const [lifts, bookings] = await Promise.all([
     prisma.lift.findMany({ where: { is_active: true } }),
@@ -24,7 +25,10 @@ router.get('/', async (req: Request, res: Response) => {
     bookings: bookings.filter((b) => b.lift_id === lift.id),
   }));
 
-  return res.json({ date, lifts: liftsWithBookings });
+  // Bookings without a lift — show in a virtual "unassigned" column
+  const unassigned = bookings.filter((b) => !b.lift_id);
+
+  return res.json({ date, lifts: liftsWithBookings, unassigned });
 });
 
 export default router;
