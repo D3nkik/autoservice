@@ -99,7 +99,7 @@ export default function HomePage() {
                 Ваш автомобиль<br />
                 в надёжных руках
               </h1>
-              <p className="text-dark-300 text-xl mb-10 leading-relaxed max-w-2xl">
+              <p className="text-white/75 text-xl mb-10 leading-relaxed max-w-2xl">
                 Профессиональный ремонт и обслуживание автомобилей любых марок. Честные цены, гарантия на работы, опытные мастера.
               </p>
               <div className="flex flex-col sm:flex-row gap-4">
@@ -110,7 +110,7 @@ export default function HomePage() {
                   Услуги и цены
                 </Link>
               </div>
-              <div className="flex flex-wrap items-center gap-6 mt-10 text-sm text-dark-300">
+              <div className="flex flex-wrap items-center gap-6 mt-10 text-sm text-white/65">
                 <span className="flex items-center gap-2">
                   <svg className="w-4 h-4 text-primary-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" /></svg>
                   4 подъёмника
@@ -204,7 +204,7 @@ export default function HomePage() {
               <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_center,rgba(249,115,22,0.1),transparent_70%)]" />
               <div className="relative">
                 <h2 className="text-3xl md:text-4xl font-bold mb-4">Запишитесь прямо сейчас</h2>
-                <p className="text-dark-300 text-lg mb-8">
+                <p className="text-white/70 text-lg mb-8">
                   Оставьте заявку онлайн — свяжемся и подтвердим время за 15 минут
                 </p>
                 <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
