@@ -5,7 +5,7 @@ COPY package*.json ./
 COPY prisma ./prisma
 RUN npm install
 COPY . .
-RUN npm run build && npx tsc prisma/seed.ts --outDir dist --esModuleInterop --skipLibCheck --resolveJsonModule --module commonjs --target ES2020
+RUN npm run build
 
 FROM node:20-alpine
 WORKDIR /app
@@ -15,4 +15,4 @@ COPY --from=builder /app/node_modules ./node_modules
 COPY --from=builder /app/prisma ./prisma
 COPY --from=builder /app/package.json ./
 EXPOSE 4000
-CMD ["sh", "-c", "npx prisma db push --accept-data-loss && node dist/seed.js; node dist/index.js"]
+CMD ["sh", "-c", "npx prisma db push --accept-data-loss && node dist/index.js"]

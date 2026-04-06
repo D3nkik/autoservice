@@ -12,6 +12,7 @@ import meRoutes from './routes/me';
 import adminRoutes from './routes/admin';
 
 import { startCronJobs } from './services/cron';
+import { runSeed } from './seed';
 
 const app = express();
 const PORT = process.env.PORT || 4000;
@@ -40,4 +41,7 @@ app.get('/api/health', (_, res) => res.json({ status: 'ok' }));
 
 startCronJobs();
 
-app.listen(PORT, () => console.log(`🚀 Backend running on http://localhost:${PORT}`));
+app.listen(PORT, () => {
+  console.log(`🚀 Backend running on http://localhost:${PORT}`);
+  runSeed().catch(e => console.error('Seed error:', e));
+});
