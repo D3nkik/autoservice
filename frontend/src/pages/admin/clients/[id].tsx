@@ -34,7 +34,7 @@ export default function AdminClientDetailPage() {
     <>
       <Head><title>{client.name} — Клиент</title></Head>
       <div className="min-h-screen bg-gray-100">
-        <header className="bg-dark-DEFAULT text-white px-6 py-4">
+        <header className="bg-dark text-white px-6 py-4">
           <Link href="/admin/clients" className="text-sm hover:underline">← Все клиенты</Link>
         </header>
         <main className="max-w-5xl mx-auto py-8 px-4 space-y-8">

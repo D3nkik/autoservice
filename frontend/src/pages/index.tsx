@@ -86,7 +86,7 @@ export default function HomePage() {
       <main>
         {/* Hero */}
         <section className="relative overflow-hidden py-20 md:py-32 px-4">
-          <div className="absolute inset-0 bg-gradient-to-br from-dark-DEFAULT via-dark-100 to-dark-200" />
+          <div className="absolute inset-0 bg-gradient-to-br from-dark via-dark-100 to-dark-200" />
           <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top_right,rgba(249,115,22,0.15),transparent_60%)]" />
           <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_bottom_left,rgba(8,145,178,0.1),transparent_60%)]" />
           <div className="relative max-w-7xl mx-auto">

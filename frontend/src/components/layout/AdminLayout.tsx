@@ -64,7 +64,7 @@ export default function AdminLayout({ children, title }: Props) {
   };
 
   return (
-    <div className="min-h-screen bg-dark-DEFAULT flex">
+    <div className="min-h-screen bg-dark flex">
       {/* Sidebar */}
       <aside className="hidden md:flex flex-col w-60 bg-dark-100 border-r border-dark-200 shrink-0">
         <div className="p-5 border-b border-dark-200">

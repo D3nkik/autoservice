@@ -42,7 +42,7 @@ export default function CabinetCarPage() {
   return (
     <>
       <Head><title>Мой автомобиль — АвтоДвиж</title></Head>
-      <div className="min-h-screen bg-dark-DEFAULT">
+      <div className="min-h-screen bg-dark">
         <div className="bg-dark-100 border-b border-dark-200 px-4 py-4">
           <div className="max-w-lg mx-auto flex items-center gap-4">
             <Link href="/cabinet" className="text-dark-300 hover:text-white transition-colors">

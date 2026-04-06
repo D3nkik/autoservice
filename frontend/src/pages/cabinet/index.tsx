@@ -73,7 +73,7 @@ export default function CabinetPage() {
 
   if (!user) {
     return (
-      <div className="min-h-screen bg-dark-DEFAULT flex items-center justify-center">
+      <div className="min-h-screen bg-dark flex items-center justify-center">
         <div className="w-8 h-8 border-2 border-primary-500 border-t-transparent rounded-full animate-spin" />
       </div>
     );
@@ -82,7 +82,7 @@ export default function CabinetPage() {
   return (
     <>
       <Head><title>Личный кабинет — АвтоДвиж</title></Head>
-      <div className="min-h-screen bg-dark-DEFAULT">
+      <div className="min-h-screen bg-dark">
         {/* Header */}
         <header className="bg-dark-100 border-b border-dark-200 px-4 py-4">
           <div className="max-w-5xl mx-auto flex items-center justify-between">

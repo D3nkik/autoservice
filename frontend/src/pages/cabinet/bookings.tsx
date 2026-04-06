@@ -54,7 +54,7 @@ export default function CabinetBookingsPage() {
   return (
     <>
       <Head><title>Мои записи — АвтоДвиж</title></Head>
-      <div className="min-h-screen bg-dark-DEFAULT">
+      <div className="min-h-screen bg-dark">
         <div className="bg-dark-100 border-b border-dark-200 px-4 py-4">
           <div className="max-w-3xl mx-auto flex items-center gap-4">
             <Link href="/cabinet" className="text-dark-300 hover:text-white transition-colors">

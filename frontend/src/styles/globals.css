@@ -10,7 +10,7 @@
     scroll-behavior: smooth;
   }
   body {
-    @apply bg-dark-DEFAULT text-white;
+    @apply bg-dark text-white;
   }
 }
 
